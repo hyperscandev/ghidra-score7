@@ -836,32 +836,14 @@ SIMM16 : simm16 is I_IMM16H>=2 & I_IMM16L & I_IMM16H [ simm16 = 0 - ((((I_IMM16H
 #    Coprocessor Instructions
 #------------------------------------------------------------------------------
 
-:mtcr CR_RD, CR_CR is P32H=1 & P32L=1 & OP32=0x06 & CR_OP=0x00 & CR_CRI!=2 & CR_RD & CR_CR
+:mtcr CR_RD, CR_CR is P32H=1 & P32L=1 & OP32=0x06 & CR_OP=0x00 & CR_RD & CR_CR
 {
 	CR_CR = CR_RD;
 }
 
-:mfcr CR_RD, CR_CR is P32H=1 & P32L=1 & OP32=0x06 & CR_OP=0x01 & CR_CRI!=2 & CR_RD & CR_CR
+:mfcr CR_RD, CR_CR is P32H=1 & P32L=1 & OP32=0x06 & CR_OP=0x01 & CR_RD & CR_CR
 {
 	CR_RD = CR_CR;
-}
-
-# Lower 5 bits of cr2 are the flags
-:mtcr CR_RD, CR_CR is P32H=1 & P32L=1 & OP32=0x06 & CR_OP=0x00 & CR_CRI=2 & CR_RD & CR_CR
-{
-	CR_CR = CR_RD;
-	V = CR_RD[0,1];
-	C = CR_RD[1,1];
-	Z = CR_RD[2,1];
-	N = CR_RD[3,1];
-	T = CR_RD[4,1];
-}
-
-# Lower 5 bits of cr2 are the flags
-:mfcr CR_RD, CR_CR is P32H=1 & P32L=1 & OP32=0x06 & CR_OP=0x01 & CR_CRI=2 & CR_RD & CR_CR
-{
-	CR_RD = CR_CR & 0xffffffe0;
-	CR_RD[0,5] = (V << 0) | (C << 1) | (Z << 2) | (N << 3) | (T << 4);
 }
 
 :rte is P32H=1 & P32L=1 & OP32=0x06 & CR_OP=0x84

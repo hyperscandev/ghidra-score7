@@ -1,5 +1,6 @@
 # Load Hyperscan HYPER.EXE
 #@category Hyperscan
+#@runtime Jython
 #@author
 
 from ghidra.program.model.lang import RegisterValue

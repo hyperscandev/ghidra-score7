@@ -15,46 +15,63 @@
  */
 package ghidra.app.util.bin.format.elf.relocation;
 
-import ghidra.app.plugin.core.reloc.RelocationFixupHandler;
+import ghidra.app.plugin.core.reloc.ElfRelocationFixupHandler;
 import ghidra.app.util.opinion.ElfLoader;
 import ghidra.program.model.address.Address;
+import ghidra.program.model.lang.Language;
 import ghidra.program.model.lang.Processor;
 import ghidra.program.model.listing.Program;
 import ghidra.program.model.mem.MemoryAccessException;
 import ghidra.program.model.reloc.Relocation;
+import ghidra.program.model.reloc.Relocation.Status;
 import ghidra.program.model.util.CodeUnitInsertionException;
 
-public class ElfScore7RelocationFixupHandler extends RelocationFixupHandler {
+public class ElfScore7RelocationFixupHandler extends ElfRelocationFixupHandler {
+
+	public ElfScore7RelocationFixupHandler() {
+		super(Score7_ElfRelocationType.class);
+	}
 
 	@Override
 	public boolean processRelocation(Program program, Relocation relocation, Address oldImageBase,
 			Address newImageBase) throws MemoryAccessException, CodeUnitInsertionException {
 
-		switch (relocation.getType()) {
-			case Score7_ElfRelocationConstants.R_SCORE_HI16:
-			case Score7_ElfRelocationConstants.R_SCORE_LO16:
-			case Score7_ElfRelocationConstants.R_SCORE_BCMP:
-			case Score7_ElfRelocationConstants.R_SCORE_24:
-			case Score7_ElfRelocationConstants.R_SCORE_PC19:
-			case Score7_ElfRelocationConstants.R_SCORE16_11:
-			case Score7_ElfRelocationConstants.R_SCORE16_PC8:
-			case Score7_ElfRelocationConstants.R_SCORE_ABS32:
-			case Score7_ElfRelocationConstants.R_SCORE_ABS16:
-			case Score7_ElfRelocationConstants.R_SCORE_DUMMY2:
-			case Score7_ElfRelocationConstants.R_SCORE_GP15:
-			case Score7_ElfRelocationConstants.R_SCORE_GNU_VTINHERIT:
-			case Score7_ElfRelocationConstants.R_SCORE_GNU_VTENTRY:
-			case Score7_ElfRelocationConstants.R_SCORE_GOT15:
-			case Score7_ElfRelocationConstants.R_SCORE_GOT_LO16:
-			case Score7_ElfRelocationConstants.R_SCORE_CALL15:
-			case Score7_ElfRelocationConstants.R_SCORE_GPREL32:
-			case Score7_ElfRelocationConstants.R_SCORE_REL32:
-			case Score7_ElfRelocationConstants.R_SCORE_DUMMY_HI16:
-			case Score7_ElfRelocationConstants.R_SCORE_IMM30:
-			case Score7_ElfRelocationConstants.R_SCORE_IMM32:
-				return process32BitRelocation(program, relocation, oldImageBase, newImageBase);
+		if (relocation.getStatus() != Status.APPLIED) {
+			return false;
 		}
-		return false;
+
+		Score7_ElfRelocationType type =
+			(Score7_ElfRelocationType) getRelocationType(relocation.getType());
+		if (type == null) {
+			return false;
+		}
+
+		switch (type) {
+			case R_SCORE_HI16:
+			case R_SCORE_LO16:
+			case R_SCORE_BCMP:
+			case R_SCORE_24:
+			case R_SCORE_PC19:
+			case R_SCORE16_11:
+			case R_SCORE16_PC8:
+			case R_SCORE_ABS32:
+			case R_SCORE_ABS16:
+			case R_SCORE_DUMMY2:
+			case R_SCORE_GP15:
+			case R_SCORE_GNU_VTINHERIT:
+			case R_SCORE_GNU_VTENTRY:
+			case R_SCORE_GOT15:
+			case R_SCORE_GOT_LO16:
+			case R_SCORE_CALL15:
+			case R_SCORE_GPREL32:
+			case R_SCORE_REL32:
+			case R_SCORE_DUMMY_HI16:
+			case R_SCORE_IMM30:
+			case R_SCORE_IMM32:
+				return process32BitRelocation(program, relocation, oldImageBase, newImageBase);
+			default:
+				return false;
+		}
 	}
 
 	@Override
@@ -62,11 +79,11 @@ public class ElfScore7RelocationFixupHandler extends RelocationFixupHandler {
 		if (!ElfLoader.ELF_NAME.equals(program.getExecutableFormat())) {
 			return false;
 		}
-		var language = program.getLanguage();
+		Language language = program.getLanguage();
 		if (language.getLanguageDescription().getSize() != 32) {
 			return false;
 		}
-		var processor = language.getProcessor();
+		Processor processor = language.getProcessor();
 		return (processor.equals(Processor.findOrPossiblyCreateProcessor("Score7")));
 	}
 }
